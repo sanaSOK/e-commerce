@@ -49,6 +49,7 @@ export default {
 }
 
 .category_name {
+  
   font-size: 11px;
   font-weight: bold;
   margin-bottom: 5px;

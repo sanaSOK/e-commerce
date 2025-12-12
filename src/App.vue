@@ -62,7 +62,7 @@
           <ProductCard
             v-for="(p, idx) in filteredProducts"
             :key="idx"
-            :title="p.title"
+            :title="p.name"
             :price="p.price"
             :oldPrice="p.oldPrice"
             :weight="p.weight"
@@ -172,6 +172,12 @@ export default {
           console.log("Image : " + temp);
 
           this.products[i].image = temp;
+          // Ensure an oldPrice exists so ProductCard always displays it
+          const priceNum = Number(this.products[i].price) || 0
+          if (!this.products[i].oldPrice && priceNum > 0) {
+            // default old price = 15% higher than current price
+            this.products[i].oldPrice = Math.round(priceNum * 1.15 * 100) / 100
+          }
         }
 
 

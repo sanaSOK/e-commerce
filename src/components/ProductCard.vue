@@ -21,23 +21,30 @@
         <div class="rating-count">({{ rating.toFixed(1) }})</div>
       </div>
 
-      <div class="product-meta">{{ weight }}</div>
+      <div class="product-sizes">
+        <template v-if="sizesList.length">
+          <span class="size-chip" v-for="(s, i) in sizesList" :key="i">{{ s }}</span>
+        </template>
+        <template v-else>
+          <div class="product-meta">{{ weight }}</div>
+        </template>
+      </div>
 
       <div class="product-bottom">
-        <div class="price-block">
-          <div>
-            <span class="price">${{ price }}</span>
-            <span v-if="oldPrice" class="old-price">${{ oldPrice }}</span>
+          <div class="price-block">
+            <div>
+              <span class="price">${{ price }}</span>
+              <span v-if="oldPrice" class="old-price">${{ oldPrice }}</span>
+            </div>
           </div>
-        </div>
 
         <div class="actions">
           <div class="qty" v-if="showQty">
-            <button @click="decrement">-</button>
+
             <input type="number" v-model.number="quantity" min="1" />
-            <button @click="increment">+</button>
+
           </div>
-          <button class="add-btn">Add +</button>
+          <button class="add-btn" v-if="!showQty">Add +</button>
         </div>
       </div>
     </div>
@@ -49,6 +56,7 @@ export default {
   name: 'ProductCard',
   props: {
     title: String,
+    size: String,
     price: Number,
     oldPrice: Number,
     weight: Number,
@@ -79,6 +87,25 @@ export default {
       const full = Math.round(this.rating)
       return '★'.repeat(full) + '☆'.repeat(Math.max(0, 5 - full))
     },
+    sizesList() {
+      const w = this.weight
+      if (!w) return []
+      if (Array.isArray(w)) return w.map(String)
+      if (typeof w === 'number') return []
+      if (typeof w === 'string') {
+        // try parse JSON array like '["500g","1kg"]'
+        try {
+          const p = JSON.parse(w)
+          if (Array.isArray(p)) return p.map(String)
+        } catch (e) {
+          /* ignore */
+        }
+        // split on common separators
+        const parts = w.split(/[,;|\/]+/).map(s => s.trim()).filter(Boolean)
+        if (parts.length > 1) return parts
+      }
+      return []
+    },
   },
   methods: {
     // onImageError(event) {
@@ -96,7 +123,7 @@ export default {
 
 <style scoped>
 .product-card {
-  background: #ffffff;
+  background: white;
   border-radius: 12px;
   border: 1px solid rgba(46, 204, 113, 0.08);
   box-shadow: 0 6px 18px rgba(16, 62, 53, 0.03);
@@ -105,7 +132,7 @@ export default {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 420px; /* fixed height for horizontal scroller */
+  height: 320px; /* fixed height for horizontal scroller */
 }
 .img-wrap {
   display: flex;
@@ -132,12 +159,12 @@ export default {
 }
 .store-name {
   font-size: 12px;
-  color: #00ffdd;
+  color: gray;
 }
 .product-title {
   font-size: 13px;
   font-weight: 600;
-  color: #0051ff;
+  color: black;
   line-height: 1.2;
   display: -webkit-box;
   line-clamp: 2;
@@ -161,7 +188,19 @@ export default {
 }
 .product-meta {
   font-size: 12px;
-  color: #00f0e0;
+  color: gray;
+}
+.product-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.size-chip {
+  background: #f3f4f6;
+  color: #1f2937;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
 }
 .product-bottom {
   display: flex;
@@ -187,13 +226,14 @@ export default {
   gap: 8px;
 }
 .qty {
+
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .qty button {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
   background: #f1f8f5;
   border: 1px solid #d6f3e2;
